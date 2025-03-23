@@ -1,6 +1,9 @@
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
+ENV HF_HUB_DISABLE_TELEMETRY=1
+ENV TZ=America/Chicago
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -8,18 +11,19 @@ RUN apt-get update && apt-get install -y \
   ffmpeg \
   libsndfile1 \
   git \
-  curl && \
-  rm -rf /var/lib/apt/lists/*
+  curl \
+  pipx \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install uv using the official script
-RUN curl -Ls https://astral.sh/uv/install.sh | bash
+# Install uv globally using pipx
+RUN pipx install uv
 
 WORKDIR /app
 
 COPY . /app
 
 # Install Python dependencies with uv
-RUN bash -c "source $HOME/.cargo/env && uv pip install --upgrade pip"
-RUN bash -c "source $HOME/.cargo/env && uv sync --no-dev"
+RUN uv pip install --upgrade pip
+RUN uv sync --no-dev
 
 CMD ["python3", "-m", "whisperx"]
