@@ -1,0 +1,9 @@
+flask
+torch
+torchaudio
+transformers
+faster-whisper
+pandas
+nltk
+librosa
+whisperx @ git+https://github.com/m-bain/whisperx.git
