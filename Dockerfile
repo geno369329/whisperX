@@ -11,16 +11,15 @@ RUN apt-get update && apt-get install -y \
   curl && \
   rm -rf /var/lib/apt/lists/*
 
-# Install uv globally
-RUN curl -Ls https://astral.sh/uv/install.sh | bash && \
-    mv ~/.cargo/bin/uv /usr/local/bin/uv
+# Install uv using the official script
+RUN curl -Ls https://astral.sh/uv/install.sh | bash
 
 WORKDIR /app
 
 COPY . /app
 
-# Use uv to install dependencies from pyproject.toml
-RUN uv pip install --upgrade pip
-RUN uv sync --no-dev
+# Install Python dependencies with uv
+RUN bash -c "source $HOME/.cargo/env && uv pip install --upgrade pip"
+RUN bash -c "source $HOME/.cargo/env && uv sync --no-dev"
 
 CMD ["python3", "-m", "whisperx"]
