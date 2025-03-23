@@ -28,7 +28,7 @@ COPY . /app
 
 # Use full path to uv since pipx doesn’t add it to PATH in this context
 RUN /root/.local/bin/uv pip install --upgrade pip --system
-RUN /root/.local/bin/uv sync --no-dev --system
+RUN /root/.local/bin/uv sync --no-dev
 
 # Start WhisperX
 CMD ["python3", "-m", "whisperx"]
