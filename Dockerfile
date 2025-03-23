@@ -5,7 +5,7 @@ ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
 ENV HF_HUB_DISABLE_TELEMETRY=1
 ENV TZ=America/Chicago
 
-# Install system dependencies
+# Install system dependencies including python3-venv
 RUN apt-get update && apt-get install -y \
   tzdata \
   ffmpeg \
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
   git \
   curl \
   pipx \
+  python3-venv \
   && rm -rf /var/lib/apt/lists/*
 
 # Install uv globally using pipx
