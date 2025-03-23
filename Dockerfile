@@ -5,15 +5,15 @@ ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
 ENV HF_HUB_DISABLE_TELEMETRY=1
 ENV TZ=America/Chicago
 
-# Install system dependencies including python3-venv
+# Install system dependencies including python3-venv and pipx
 RUN apt-get update && apt-get install -y \
   tzdata \
   ffmpeg \
   libsndfile1 \
   git \
   curl \
-  pipx \
   python3-venv \
+  pipx \
   && rm -rf /var/lib/apt/lists/*
 
 # Install uv globally using pipx
@@ -23,8 +23,8 @@ WORKDIR /app
 
 COPY . /app
 
-# Install Python dependencies with uv
-RUN uv pip install --upgrade pip
-RUN uv sync --no-dev
+# Use full path to uv since pipx doesn’t add it to PATH in this context
+RUN /root/.local/bin/uv pip install --upgrade pip
+RUN /root/.local/bin/uv sync --no-dev
 
 CMD ["python3", "-m", "whisperx"]
