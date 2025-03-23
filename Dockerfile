@@ -1,43 +1,37 @@
-# Use NVIDIA PyTorch base image with CUDA support for GPU
+# Use a CUDA-compatible PyTorch base image for GPU support
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
-ENV HF_HUB_DISABLE_TELEMETRY=1
-ENV HF_HOME=/app/.cache/huggingface
-
-# Install system dependencies
+# System-level dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
-    curl \
     libsndfile1 \
-    python3-pip \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Set environment variables for Hugging Face model caching
+ENV HF_HOME=/app/.cache/huggingface
+ENV HF_HUB_DISABLE_TELEMETRY=1
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
+
+# Create working directory
 WORKDIR /app
 
-# Copy all project files into container
+# Copy local files to container
 COPY . /app
 
-# Upgrade pip and install dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-    numpy \
-    torchaudio \
-    librosa \
-    pandas \
-    transformers \
-    nltk \
-    pyannote.audio \
-    faster-whisper \
-    git+https://github.com/m-bain/whisperx.git
+# Install pip and Python dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Pre-download punkt tokenizer so nltk works at runtime
-RUN python3 -c "import nltk; nltk.download('punkt')"
+# Explicitly install extra dependencies needed by WhisperX
+RUN pip install flask transformers nltk librosa pandas torchaudio
 
-# Run WhisperX when container starts
-CMD ["python3", "-m", "whisperx"]
+# Download NLTK tokenizers (needed for diarization)
+RUN python3 -m nltk.downloader punkt
+
+# Expose Flask default port
+EXPOSE 5000
+
+# Run Flask server
+CMD ["python3", "app.py"]
