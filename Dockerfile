@@ -1,37 +1,33 @@
-# Use a CUDA-compatible PyTorch base image for GPU support
+# Use a base image with CUDA and PyTorch
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# System-level dependencies
+# Set timezone non-interactively to avoid tzdata prompts
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Etc/UTC
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
-    git \
     libsndfile1 \
+    git \
+    curl \
     python3-venv \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for Hugging Face model caching
-ENV HF_HOME=/app/.cache/huggingface
-ENV HF_HUB_DISABLE_TELEMETRY=1
-ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
-
-# Create working directory
+# Set working directory
 WORKDIR /app
 
-# Copy local files to container
+# Copy source code
 COPY . /app
 
-# Install pip and Python dependencies
+# Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Explicitly install extra dependencies needed by WhisperX
-RUN pip install flask transformers nltk librosa pandas torchaudio
+# Set environment variables for HuggingFace
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
+ENV HF_HUB_DISABLE_TELEMETRY=1
 
-# Download NLTK tokenizers (needed for diarization)
-RUN python3 -m nltk.downloader punkt
-
-# Expose Flask default port
-EXPOSE 5000
-
-# Run Flask server
+# Start the Flask app
 CMD ["python3", "app.py"]
