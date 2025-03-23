@@ -2,10 +2,10 @@
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
 # Set environment variables
-ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
-ENV HF_HUB_DISABLE_TELEMETRY=1
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
+ENV HF_HUB_DISABLE_TELEMETRY=1
+ENV HF_HOME=/app/.cache/huggingface
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,25 +13,31 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libsndfile1 \
+    python3-pip \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
-
-# Install pipx and uv globally
-RUN pip install --no-cache-dir pipx && \
-    pipx install uv
 
 # Set working directory
 WORKDIR /app
 
-# Copy all files
+# Copy all project files into container
 COPY . /app
 
-# Use full path to uv since pipx doesn’t add it to PATH in this context
-RUN /root/.local/bin/uv pip install --upgrade pip --system
-RUN /root/.local/bin/uv sync --no-dev
+# Upgrade pip and install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    numpy \
+    torchaudio \
+    librosa \
+    pandas \
+    transformers \
+    nltk \
+    pyannote.audio \
+    faster-whisper \
+    git+https://github.com/m-bain/whisperx.git
 
-# 🧠 Manually install critical deps (fix for ModuleNotFoundError)
-RUN pip install pandas transformers
+# Pre-download punkt tokenizer so nltk works at runtime
+RUN python3 -c "import nltk; nltk.download('punkt')"
 
-# Start WhisperX
+# Run WhisperX when container starts
 CMD ["python3", "-m", "whisperx"]
