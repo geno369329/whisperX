@@ -30,8 +30,8 @@ COPY . /app
 RUN /root/.local/bin/uv pip install --upgrade pip --system
 RUN /root/.local/bin/uv sync --no-dev
 
-# 🔧 Fix: manually install pandas and any extras here
-RUN pip install pandas
+# 🧠 Manually install critical deps (fix for ModuleNotFoundError)
+RUN pip install pandas transformers
 
 # Start WhisperX
 CMD ["python3", "-m", "whisperx"]
