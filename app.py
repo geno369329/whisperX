@@ -25,8 +25,8 @@ def transcribe():
         audio_path = tmp.name
 
     try:
-        # Load model
-        model = whisperx.load_model("large-v3", device)
+        # Load model with float32 compute type for better CPU compatibility
+        model = whisperx.load_model("large-v3", device, compute_type="float32")
 
         # Transcribe
         result = model.transcribe(audio_path)
