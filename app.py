@@ -64,7 +64,12 @@ def transcribe():
             }
 
             if webhook_url:
-                requests.post(webhook_url, json=response_payload)
+                try:
+                    print(f"Sending transcription to webhook: {webhook_url}")
+                    webhook_response = requests.post(webhook_url, json=response_payload)
+                    print(f"Webhook response: {webhook_response.status_code} - {webhook_response.text}")
+                except Exception as webhook_error:
+                    print(f"Error sending to webhook: {webhook_error}")
 
         except Exception as e:
             # You could also send errors to webhook here
