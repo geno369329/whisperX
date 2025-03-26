@@ -22,6 +22,12 @@ def transcribe():
     video_format = data.get("format")  # e.g. "Shortform" or "Longform"
     webhook_url = data.get("webhookUrl")
 
+    # ✅ Webhook fallback logic (only change)
+    if not webhook_url:
+        webhook_url = "https://ehmokeh.app.n8n.cloud/webhook-test/e33cf31c-a80d-4115-98e9-160f2103f0c7"
+        if "RAILWAY_ENVIRONMENT" in os.environ and "prod" in os.environ["RAILWAY_ENVIRONMENT"].lower():
+            webhook_url = "https://ehmokeh.app.n8n.cloud/webhook/e33cf31c-a80d-4115-98e9-160f2103f0c7"
+
     if not file_url:
         return jsonify({"error": "No URL provided"}), 400
 
@@ -55,7 +61,7 @@ def transcribe():
             "segments": result_aligned["segments"]
         }
 
-        # Send to webhook if specified
+        # Send to webhook
         if webhook_url:
             requests.post(webhook_url, json=response_payload)
 
