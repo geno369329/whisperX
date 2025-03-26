@@ -4,11 +4,10 @@ import whisperx
 import os
 import tempfile
 import requests
-import threading  # ✅ NEW: for background processing
+import threading
 
 app = Flask(__name__)
 
-# Set device
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 @app.route("/ping", methods=["GET"])
@@ -20,10 +19,9 @@ def transcribe():
     data = request.json
     file_url = data.get("url")
     notion_page_id = data.get("notionPageId")
-    video_format = data.get("format")  # e.g. "Shortform" or "Longform"
+    video_format = data.get("format")
     webhook_url = data.get("webhookUrl")
 
-    # ✅ Webhook fallback logic
     if not webhook_url:
         webhook_url = "https://ehmokeh.app.n8n.cloud/webhook-test/e33cf31c-a80d-4115-98e9-160f2103f0c7"
         if "RAILWAY_ENVIRONMENT" in os.environ and "prod" in os.environ["RAILWAY_ENVIRONMENT"].lower():
@@ -34,23 +32,25 @@ def transcribe():
 
     def process_transcription():
         try:
-            # Download video file to temp location
+            print("🟡 Starting transcription thread...")
+
             response = requests.get(file_url, stream=True)
             if response.status_code != 200:
-                return  # just exit silently
+                print("❌ Failed to download video. Status code:", response.status_code)
+                return
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
                 for chunk in response.iter_content(chunk_size=8192):
                     tmp.write(chunk)
                 audio_path = tmp.name
 
-            # Load model
-            model = whisperx.load_model("large-v3", device, compute_type="float32")
+            print("📥 Download complete. Loading WhisperX model...")
 
-            # Transcribe
+            model = whisperx.load_model("large-v3", device, compute_type="float32")
             result = model.transcribe(audio_path)
 
-            # Align
+            print("🧠 Transcription complete. Aligning...")
+
             model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
             result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
 
@@ -63,19 +63,13 @@ def transcribe():
                 "segments": result_aligned["segments"]
             }
 
-            if webhook_url:
-                try:
-                    print(f"Sending transcription to webhook: {webhook_url}")
-                    webhook_response = requests.post(webhook_url, json=response_payload)
-                    print(f"Webhook response: {webhook_response.status_code} - {webhook_response.text}")
-                except Exception as webhook_error:
-                    print(f"Error sending to webhook: {webhook_error}")
+            print("📬 Sending transcription to webhook:", webhook_url)
+            res = requests.post(webhook_url, json=response_payload)
+            print("✅ Webhook response status:", res.status_code)
 
         except Exception as e:
-            # You could also send errors to webhook here
-            print("Transcription error:", str(e))
+            print("❌ Transcription error:", str(e))
 
-    # ✅ Fire background thread and return 202
     threading.Thread(target=process_transcription).start()
     return jsonify({"status": "Accepted"}), 202
 
