@@ -4,6 +4,7 @@ import whisperx
 import os
 import tempfile
 import requests
+import threading  # ✅ NEW: for background processing
 
 app = Flask(__name__)
 
@@ -22,7 +23,7 @@ def transcribe():
     video_format = data.get("format")  # e.g. "Shortform" or "Longform"
     webhook_url = data.get("webhookUrl")
 
-    # ✅ Webhook fallback logic (only change)
+    # ✅ Webhook fallback logic
     if not webhook_url:
         webhook_url = "https://ehmokeh.app.n8n.cloud/webhook-test/e33cf31c-a80d-4115-98e9-160f2103f0c7"
         if "RAILWAY_ENVIRONMENT" in os.environ and "prod" in os.environ["RAILWAY_ENVIRONMENT"].lower():
@@ -31,44 +32,47 @@ def transcribe():
     if not file_url:
         return jsonify({"error": "No URL provided"}), 400
 
-    try:
-        # Download video file to temp location
-        response = requests.get(file_url, stream=True)
-        if response.status_code != 200:
-            return jsonify({"error": "Failed to download file"}), 400
+    def process_transcription():
+        try:
+            # Download video file to temp location
+            response = requests.get(file_url, stream=True)
+            if response.status_code != 200:
+                return  # just exit silently
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
-            for chunk in response.iter_content(chunk_size=8192):
-                tmp.write(chunk)
-            audio_path = tmp.name
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+                for chunk in response.iter_content(chunk_size=8192):
+                    tmp.write(chunk)
+                audio_path = tmp.name
 
-        # Load model with float32 compute type for better CPU compatibility
-        model = whisperx.load_model("large-v3", device, compute_type="float32")
+            # Load model
+            model = whisperx.load_model("large-v3", device, compute_type="float32")
 
-        # Transcribe
-        result = model.transcribe(audio_path)
+            # Transcribe
+            result = model.transcribe(audio_path)
 
-        # Align for accurate word-level timestamps
-        model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
-        result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
+            # Align
+            model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
+            result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
 
-        os.remove(audio_path)
+            os.remove(audio_path)
 
-        response_payload = {
-            "notionPageId": notion_page_id,
-            "format": video_format,
-            "language": result["language"],
-            "segments": result_aligned["segments"]
-        }
+            response_payload = {
+                "notionPageId": notion_page_id,
+                "format": video_format,
+                "language": result["language"],
+                "segments": result_aligned["segments"]
+            }
 
-        # Send to webhook
-        if webhook_url:
-            requests.post(webhook_url, json=response_payload)
+            if webhook_url:
+                requests.post(webhook_url, json=response_payload)
 
-        return jsonify({"status": "Transcription complete", **response_payload})
+        except Exception as e:
+            # You could also send errors to webhook here
+            print("Transcription error:", str(e))
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # ✅ Fire background thread and return 202
+    threading.Thread(target=process_transcription).start()
+    return jsonify({"status": "Accepted"}), 202
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
