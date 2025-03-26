@@ -20,12 +20,15 @@ def transcribe():
     file_url = data.get("url")
     notion_page_id = data.get("notionPageId")
     video_format = data.get("format")
-    webhook_url = data.get("webhookUrl")
+    incoming_webhook = data.get("webhookUrl")
 
-    if not webhook_url:
-        webhook_url = "https://ehmokeh.app.n8n.cloud/webhook-test/e33cf31c-a80d-4115-98e9-160f2103f0c7"
-        if "RAILWAY_ENVIRONMENT" in os.environ and "prod" in os.environ["RAILWAY_ENVIRONMENT"].lower():
-            webhook_url = "https://ehmokeh.app.n8n.cloud/webhook/e33cf31c-a80d-4115-98e9-160f2103f0c7"
+    # 🔁 Determine response webhook based on source
+    if incoming_webhook == "https://ehmokeh.app.n8n.cloud/webhook-test/ba47d62c-3247-43e2-a834-906dffb943dd":
+        final_webhook = "https://ehmokeh.app.n8n.cloud/webhook-test/e33cf31c-a80d-4115-98e9-160f2103f0c7"
+    elif incoming_webhook == "https://ehmokeh.app.n8n.cloud/webhook/ba47d62c-3247-43e2-a834-906dffb943dd":
+        final_webhook = "https://ehmokeh.app.n8n.cloud/webhook/e33cf31c-a80d-4115-98e9-160f2103f0c7"
+    else:
+        return jsonify({"error": "Unrecognized webhook URL"}), 400
 
     if not file_url:
         return jsonify({"error": "No URL provided"}), 400
@@ -63,8 +66,8 @@ def transcribe():
                 "segments": result_aligned["segments"]
             }
 
-            print("📬 Sending transcription to webhook:", webhook_url)
-            res = requests.post(webhook_url, json=response_payload)
+            print("📬 Sending transcription to webhook:", final_webhook)
+            res = requests.post(final_webhook, json=response_payload)
             print("✅ Webhook response status:", res.status_code)
 
         except Exception as e:
