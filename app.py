@@ -4,15 +4,64 @@ import whisperx
 import os
 import tempfile
 import requests
-import threading
+from rq import Queue
+from redis import Redis
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
+q = Queue(connection=redis_conn)
+
+
+def process_transcription(file_url, notion_page_id, video_format, final_webhook):
+    try:
+        print("🟡 Starting transcription job...")
+
+        response = requests.get(file_url, stream=True)
+        if response.status_code != 200:
+            print("❌ Failed to download video. Status code:", response.status_code)
+            return
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+            for chunk in response.iter_content(chunk_size=8192):
+                tmp.write(chunk)
+            audio_path = tmp.name
+
+        print("📥 Download complete. Loading WhisperX model...")
+
+        model = whisperx.load_model("large-v3", device, compute_type="float32")
+        result = model.transcribe(audio_path)
+
+        print("🧠 Transcription complete. Aligning...")
+
+        model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
+        result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
+
+        os.remove(audio_path)
+
+        response_payload = {
+            "notionPageId": notion_page_id,
+            "format": video_format,
+            "language": result["language"],
+            "segments": result_aligned["segments"]
+        }
+
+        print("📬 Sending transcription to webhook:", final_webhook)
+        res = requests.post(final_webhook, json=response_payload)
+        print("✅ Webhook response status:", res.status_code)
+
+    except Exception as e:
+        print("❌ Transcription error:", str(e))
+
 
 @app.route("/ping", methods=["GET"])
 def ping():
     return jsonify({"status": "ok"}), 200
+
 
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
@@ -33,48 +82,12 @@ def transcribe():
     if not file_url:
         return jsonify({"error": "No URL provided"}), 400
 
-    def process_transcription():
-        try:
-            print("🟡 Starting transcription thread...")
+    # 👇 Enqueue the transcription job
+    job = q.enqueue(process_transcription, file_url, notion_page_id, video_format, final_webhook)
+    print(f"📦 Enqueued job ID: {job.id}")
 
-            response = requests.get(file_url, stream=True)
-            if response.status_code != 200:
-                print("❌ Failed to download video. Status code:", response.status_code)
-                return
+    return jsonify({"status": "Accepted", "jobId": job.id}), 202
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
-                for chunk in response.iter_content(chunk_size=8192):
-                    tmp.write(chunk)
-                audio_path = tmp.name
-
-            print("📥 Download complete. Loading WhisperX model...")
-
-            model = whisperx.load_model("large-v3", device, compute_type="float32")
-            result = model.transcribe(audio_path)
-
-            print("🧠 Transcription complete. Aligning...")
-
-            model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
-            result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
-
-            os.remove(audio_path)
-
-            response_payload = {
-                "notionPageId": notion_page_id,
-                "format": video_format,
-                "language": result["language"],
-                "segments": result_aligned["segments"]
-            }
-
-            print("📬 Sending transcription to webhook:", final_webhook)
-            res = requests.post(final_webhook, json=response_payload)
-            print("✅ Webhook response status:", res.status_code)
-
-        except Exception as e:
-            print("❌ Transcription error:", str(e))
-
-    threading.Thread(target=process_transcription).start()
-    return jsonify({"status": "Accepted"}), 202
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
