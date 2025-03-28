@@ -10,4 +10,5 @@ whisperx @ git+https://github.com/m-bain/whisperx.git
 rq
 python-dotenv
 gunicorn
-pyannote.audio
+pyannote.audio==0.0.1
+ffmpeg-python
