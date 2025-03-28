@@ -115,7 +115,8 @@ def transcribe():
         print("⚠️ Failed to estimate duration:", str(e))
         eta_sec = None
 
-    job = q.enqueue(process_transcription, file_url, notion_page_id, video_format, final_webhook)
+    # 👇 Enqueue with extended timeout (30 minutes)
+    job = q.enqueue(process_transcription, file_url, notion_page_id, video_format, final_webhook, timeout=1800)
     print(f"📦 Enqueued job ID: {job.id}")
 
     return jsonify({
