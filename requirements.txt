@@ -6,7 +6,7 @@ faster-whisper
 pandas
 nltk
 librosa
-whisperx @ git+https://github.com/m-bain/whisperx.git
+whisperx @ git+https://github.com/m-bain/whisperx.git@a6d8cfd
 rq
 python-dotenv
 gunicorn
