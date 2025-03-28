@@ -1,7 +1,6 @@
 flask
-torch==1.10.0+cu102
+torch==1.10.0
 torchaudio==0.10.0
--f https://download.pytorch.org/whl/torch_stable.html
 transformers==4.25.1
 faster-whisper
 pandas
