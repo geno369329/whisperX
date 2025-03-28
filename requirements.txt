@@ -6,9 +6,8 @@ faster-whisper
 pandas
 nltk
 librosa
-ffmpeg-python
+whisperx @ git+https://github.com/m-bain/whisperx.git
+rq
 python-dotenv
 gunicorn
-rq
-pyannote.audio>=2.1.1,<3.0.0
-whisperx @ git+https://github.com/m-bain/whisperx.git
+ffmpeg-python
