@@ -1,12 +1,14 @@
 flask
+torch==2.1.0
+torchaudio==2.1.0
 transformers
 faster-whisper
 pandas
 nltk
 librosa
-whisperx @ git+https://github.com/m-bain/whisperx.git
-rq
+ffmpeg-python
 python-dotenv
 gunicorn
-pyannote.audio==0.0.1
-ffmpeg-python
+rq
+pyannote.audio>=2.1.1,<3.0.0
+whisperx @ git+https://github.com/m-bain/whisperx.git
