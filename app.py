@@ -7,6 +7,7 @@ import requests
 from rq import Queue
 from redis import Redis
 from dotenv import load_dotenv
+from pyannote.audio import Pipeline  # ✅ NEW
 
 load_dotenv()
 
@@ -41,13 +42,19 @@ def process_transcription(file_url, notion_page_id, video_format, final_webhook)
         model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
         result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
 
+        print("🧑‍🤝‍🧑 Running speaker diarization...")  # ✅ NEW
+        diarize_pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token=os.getenv("HF_TOKEN"))
+        diarize_segments = diarize_pipeline(audio_path)
+        result_with_speakers = whisperx.assign_word_speakers(diarize_segments, result_aligned["word_segments"])
+
         os.remove(audio_path)
 
         response_payload = {
             "notionPageId": notion_page_id,
             "format": video_format,
             "language": result["language"],
-            "segments": result_aligned["segments"]
+            "segments": result_aligned["segments"],
+            "words": result_with_speakers  # ✅ NEW: word-level output with speaker tags
         }
 
         print("📬 Sending transcription to webhook:", final_webhook)
@@ -87,4 +94,3 @@ def transcribe():
     print(f"📦 Enqueued job ID: {job.id}")
 
     return jsonify({"status": "Accepted", "jobId": job.id}), 202
-
