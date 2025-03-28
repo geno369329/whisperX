@@ -7,7 +7,7 @@ import requests
 from rq import Queue
 from redis import Redis
 from dotenv import load_dotenv
-from pyannote.audio import Pipeline
+# from pyannote.audio import Pipeline  # ⛔️ Commented out for now
 import torchaudio
 import time
 
@@ -21,9 +21,8 @@ q = Queue(connection=redis_conn)
 
 
 def estimate_transcription_time(duration_sec):
-    # Rough estimate: assume ~2x realtime on CPU or ~0.5x on GPU
     if device == "cuda":
-        return round(duration_sec * 0.5)  # seconds
+        return round(duration_sec * 0.5)
     else:
         return round(duration_sec * 2.5)
 
@@ -48,7 +47,6 @@ def process_transcription(file_url, notion_page_id, video_format, final_webhook)
             audio_path = tmp.name
 
         print("📥 Download complete. Loading WhisperX model...")
-
         model = whisperx.load_model("large-v3", device, compute_type="float32")
         result = model.transcribe(audio_path)
 
@@ -56,10 +54,11 @@ def process_transcription(file_url, notion_page_id, video_format, final_webhook)
         model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
         result_aligned = whisperx.align(result["segments"], model_a, metadata, audio_path, device)
 
-        print("🧑‍🤝‍🧑 Running speaker diarization...")
-        diarize_pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token=os.getenv("HF_TOKEN"))
-        diarize_segments = diarize_pipeline(audio_path)
-        result_with_speakers = whisperx.assign_word_speakers(diarize_segments, result_aligned["word_segments"])
+        # 🛑 Speaker diarization disabled temporarily
+        # print("🧑‍🤝‍🧑 Running speaker diarization...")
+        # diarize_pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token=os.getenv("HF_TOKEN"))
+        # diarize_segments = diarize_pipeline(audio_path)
+        # result_with_speakers = whisperx.assign_word_speakers(diarize_segments, result_aligned["word_segments"])
 
         os.remove(audio_path)
 
@@ -68,7 +67,7 @@ def process_transcription(file_url, notion_page_id, video_format, final_webhook)
             "format": video_format,
             "language": result["language"],
             "segments": result_aligned["segments"],
-            "words": result_with_speakers
+            # "words": result_with_speakers  # ⛔️ Also temporarily removed
         }
 
         print("📬 Sending transcription to webhook:", final_webhook)
