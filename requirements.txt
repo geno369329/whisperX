@@ -49,4 +49,5 @@ pyparsing
 packaging
 cycler
 kiwisolver
+rich
 whisperx @ git+https://github.com/m-bain/whisperx.git
