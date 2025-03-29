@@ -47,4 +47,5 @@ av
 matplotlib
 pyparsing
 packaging
+cycler
 whisperx @ git+https://github.com/m-bain/whisperx.git
