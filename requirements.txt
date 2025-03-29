@@ -20,3 +20,4 @@ huggingface_hub
 regex
 whisperx @ git+https://github.com/m-bain/whisperx.git
 pyannote.audio
+safetensors
