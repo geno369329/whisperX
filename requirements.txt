@@ -45,4 +45,5 @@ colorlog
 ctranslate2
 av
 matplotlib
+pyparsing
 whisperx @ git+https://github.com/m-bain/whisperx.git
