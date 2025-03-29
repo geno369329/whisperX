@@ -50,4 +50,5 @@ packaging
 cycler
 kiwisolver
 rich
+pytorch_metric_learning
 whisperx @ git+https://github.com/m-bain/whisperx.git
