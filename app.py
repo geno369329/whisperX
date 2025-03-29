@@ -108,9 +108,14 @@ def transcribe():
             for chunk in r.iter_content(chunk_size=8192):
                 tmp.write(chunk)
         tmp.close()
+
         duration = get_audio_duration(tmp.name)
         eta_sec = estimate_transcription_time(duration)
         timeout_sec = int(eta_sec * 1.5)
+
+        # 🧮 Log timing diagnostics
+        print(f"⏱ Duration: {duration:.2f}s | ETA: {eta_sec}s | Timeout Set: {timeout_sec}s")
+
         os.remove(tmp.name)
     except Exception as e:
         print("⚠️ Failed to estimate duration:", str(e))
@@ -124,7 +129,7 @@ def transcribe():
         notion_page_id,
         video_format,
         final_webhook,
-        job_timeout=timeout_sec  # ✅ Fixed here
+        job_timeout=timeout_sec
     )
     print(f"📦 Enqueued job ID: {job.id}")
 
