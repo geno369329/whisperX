@@ -17,7 +17,9 @@ WORKDIR /app
 COPY . /app
 
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+
+# ✅ More stable and cache-free install
+RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
 ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
 ENV HF_HUB_DISABLE_TELEMETRY=1
