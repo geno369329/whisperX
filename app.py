@@ -117,14 +117,14 @@ def transcribe():
         eta_sec = None
         timeout_sec = 3600  # fallback
 
-    # ✅ Enqueue with dynamic timeout
+    # ✅ Enqueue with correct dynamic timeout
     job = q.enqueue(
         process_transcription,
         file_url,
         notion_page_id,
         video_format,
         final_webhook,
-        job_timeout=timeout_sec
+        timeout=timeout_sec  # 🔥 This is the fix
     )
     print(f"📦 Enqueued job ID: {job.id}")
 
