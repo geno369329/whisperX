@@ -8,6 +8,7 @@ nltk
 librosa
 whisperx @ git+https://github.com/m-bain/whisperx.git
 rq
+redis
 python-dotenv
 gunicorn
 pyannote.audio
