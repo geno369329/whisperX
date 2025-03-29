@@ -33,4 +33,5 @@ scikit-learn
 joblib
 threadpoolctl
 lazy_loader
+torch_audiomentations
 whisperx @ git+https://github.com/m-bain/whisperx.git
