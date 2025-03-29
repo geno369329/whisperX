@@ -41,4 +41,5 @@ primePy
 semver
 optuna
 colorlog
+ctranslate2
 whisperx @ git+https://github.com/m-bain/whisperx.git
