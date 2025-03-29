@@ -34,4 +34,5 @@ joblib
 threadpoolctl
 lazy_loader
 torch_audiomentations
+julius
 whisperx @ git+https://github.com/m-bain/whisperx.git
