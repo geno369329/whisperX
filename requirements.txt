@@ -46,4 +46,5 @@ ctranslate2
 av
 matplotlib
 pyparsing
+packaging
 whisperx @ git+https://github.com/m-bain/whisperx.git
