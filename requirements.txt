@@ -40,4 +40,5 @@ torch_pitch_shift
 primePy
 semver
 optuna
+colorlog
 whisperx @ git+https://github.com/m-bain/whisperx.git
