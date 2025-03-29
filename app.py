@@ -67,7 +67,7 @@ def process_transcription(file_url, notion_page_id, video_format, final_webhook)
             "format": video_format,
             "language": result["language"],
             "segments": result_aligned["segments"],
-            # "words": result_with_speakers  # ⛔️ Also temporarily removed
+            # "words": result_with_speakers
         }
 
         print("📬 Sending transcription to webhook:", final_webhook)
@@ -110,24 +110,27 @@ def transcribe():
         tmp.close()
         duration = get_audio_duration(tmp.name)
         eta_sec = estimate_transcription_time(duration)
+        timeout_sec = int(eta_sec * 1.5)
         os.remove(tmp.name)
     except Exception as e:
         print("⚠️ Failed to estimate duration:", str(e))
         eta_sec = None
+        timeout_sec = 3600  # fallback
 
-    # ✅ Extended timeout for longer audio files
+    # ✅ Enqueue with dynamic timeout
     job = q.enqueue(
         process_transcription,
         file_url,
         notion_page_id,
         video_format,
         final_webhook,
-        job_timeout=1800
+        job_timeout=timeout_sec
     )
     print(f"📦 Enqueued job ID: {job.id}")
 
     return jsonify({
         "status": "Accepted",
         "jobId": job.id,
-        "estimatedTimeSec": eta_sec
+        "estimatedTimeSec": eta_sec,
+        "timeoutUsed": timeout_sec
     }), 202
