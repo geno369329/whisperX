@@ -35,4 +35,5 @@ threadpoolctl
 lazy_loader
 torch_audiomentations
 julius
+torch_pitch_shift
 whisperx @ git+https://github.com/m-bain/whisperx.git
