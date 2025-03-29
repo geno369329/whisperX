@@ -14,5 +14,6 @@ scipy
 blinker
 itsdangerous
 async-timeout
+werkzeug
 whisperx @ git+https://github.com/m-bain/whisperx.git
 pyannote.audio
