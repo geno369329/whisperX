@@ -124,7 +124,7 @@ def transcribe():
         notion_page_id,
         video_format,
         final_webhook,
-        timeout=timeout_sec  # 🔥 This is the fix
+        job_timeout=timeout_sec  # ✅ Fixed here
     )
     print(f"📦 Enqueued job ID: {job.id}")
 
