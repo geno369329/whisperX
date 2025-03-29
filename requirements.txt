@@ -29,5 +29,6 @@ omegaconf
 hydra-core
 torchmetrics
 scikit-learn
-whisperx @ git+https://github.com/m-bain/whisperx.git
 joblib
+threadpoolctl
+whisperx @ git+https://github.com/m-bain/whisperx.git
