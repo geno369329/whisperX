@@ -113,8 +113,9 @@ def transcribe():
         eta_sec = estimate_transcription_time(duration)
         timeout_sec = int(eta_sec * 1.5)
 
-        # 🧮 Log timing diagnostics
-        print(f"⏱ Duration: {duration:.2f}s | ETA: {eta_sec}s | Timeout Set: {timeout_sec}s")
+        # ✅ Safe logging to avoid build issues
+        if all(isinstance(x, (int, float)) for x in [duration, eta_sec, timeout_sec]):
+            print(f"⏱ Duration: {duration:.2f}s | ETA: {eta_sec}s | Timeout Set: {timeout_sec}s")
 
         os.remove(tmp.name)
     except Exception as e:
