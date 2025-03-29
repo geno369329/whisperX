@@ -24,6 +24,7 @@ einops
 pyannote.audio
 pyannote.core
 pyannote.database
+pyannote.pipeline
 pytorch_lightning
 lightning-utilities
 omegaconf
