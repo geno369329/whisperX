@@ -36,4 +36,5 @@ lazy_loader
 torch_audiomentations
 julius
 torch_pitch_shift
+primePy
 whisperx @ git+https://github.com/m-bain/whisperx.git
