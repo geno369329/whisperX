@@ -37,4 +37,5 @@ torch_audiomentations
 julius
 torch_pitch_shift
 primePy
+semver
 whisperx @ git+https://github.com/m-bain/whisperx.git
