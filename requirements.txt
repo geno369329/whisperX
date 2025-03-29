@@ -42,4 +42,5 @@ semver
 optuna
 colorlog
 ctranslate2
+av
 whisperx @ git+https://github.com/m-bain/whisperx.git
