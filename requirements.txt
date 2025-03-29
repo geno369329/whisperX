@@ -39,4 +39,5 @@ julius
 torch_pitch_shift
 primePy
 semver
+optuna
 whisperx @ git+https://github.com/m-bain/whisperx.git
