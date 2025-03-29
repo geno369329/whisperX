@@ -25,6 +25,7 @@ pyannote.audio
 pyannote.core
 pyannote.database
 pyannote.pipeline
+pyannote.metrics
 pytorch_lightning
 lightning-utilities
 omegaconf
