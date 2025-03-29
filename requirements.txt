@@ -44,4 +44,5 @@ optuna
 colorlog
 ctranslate2
 av
+matplotlib
 whisperx @ git+https://github.com/m-bain/whisperx.git
