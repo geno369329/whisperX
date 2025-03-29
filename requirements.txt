@@ -23,4 +23,5 @@ tokenizers
 einops
 pyannote.audio
 pyannote.core
+pytorch_lightning
 whisperx @ git+https://github.com/m-bain/whisperx.git
