@@ -23,6 +23,7 @@ tokenizers
 einops
 pyannote.audio
 pyannote.core
+pyannote.database
 pytorch_lightning
 lightning-utilities
 omegaconf
