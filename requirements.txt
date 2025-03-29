@@ -18,6 +18,7 @@ async-timeout
 python-dateutil
 huggingface_hub
 regex
+safetensors
+tokenizers
 whisperx @ git+https://github.com/m-bain/whisperx.git
 pyannote.audio
-safetensors
