@@ -20,6 +20,7 @@ huggingface_hub
 regex
 safetensors
 tokenizers
-whisperx @ git+https://github.com/m-bain/whisperx.git
-pyannote.audio
 einops
+pyannote.audio
+pyannote.core
+whisperx @ git+https://github.com/m-bain/whisperx.git
