@@ -24,4 +24,9 @@ einops
 pyannote.audio
 pyannote.core
 pytorch_lightning
+lightning-utilities
+omegaconf
+hydra-core
+torchmetrics
+scikit-learn
 whisperx @ git+https://github.com/m-bain/whisperx.git
