@@ -9,11 +9,12 @@ nltk
 librosa
 rq
 redis
-python-dotenv
 scipy
-blinker
+python-dotenv
 itsdangerous
-async-timeout
 werkzeug
+blinker
+async-timeout
+python-dateutil
 whisperx @ git+https://github.com/m-bain/whisperx.git
 pyannote.audio
