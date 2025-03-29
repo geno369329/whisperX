@@ -53,3 +53,4 @@ rich
 pytorch_metric_learning
 whisperx @ git+https://github.com/m-bain/whisperx.git
 antlr4-python3-runtime==4.9.3
+asteroid
