@@ -20,13 +20,6 @@ redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
 q = Queue(connection=redis_conn)
 
 
-def estimate_transcription_time(duration_sec):
-    if device == "cuda":
-        return round(duration_sec * 0.5)
-    else:
-        return round(duration_sec * 2.5)
-
-
 def get_audio_duration(file_path):
     metadata = torchaudio.info(file_path)
     return metadata.num_frames / metadata.sample_rate
@@ -102,28 +95,23 @@ def transcribe():
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        print("📏 Estimating transcription time...")
+        print("📏 Downloading video...")
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
         with requests.get(file_url, stream=True) as r:
             for chunk in r.iter_content(chunk_size=8192):
                 tmp.write(chunk)
         tmp.close()
 
-        duration = get_audio_duration(tmp.name)
-        eta_sec = estimate_transcription_time(duration)
-        timeout_sec = int(eta_sec * 1.5)
+        # Remove any previous dynamic timeout code and set a static 3 hours timeout
+        timeout_sec = 10800  # 3 hours in seconds
 
-        # ✅ Safe logging to avoid build issues
-        if all(isinstance(x, (int, float)) for x in [duration, eta_sec, timeout_sec]):
-            print(f"⏱ Duration: {duration:.2f}s | ETA: {eta_sec}s | Timeout Set: {timeout_sec}s")
-
+        print(f"⏱ Timeout Set: {timeout_sec}s")
         os.remove(tmp.name)
     except Exception as e:
-        print("⚠️ Failed to estimate duration:", str(e))
-        eta_sec = None
-        timeout_sec = 3600  # fallback
+        print("⚠️ Failed to process video:", str(e))
+        timeout_sec = 10800  # Fallback to 3 hours if any error occurs
 
-    # ✅ Enqueue with correct dynamic timeout
+    # ✅ Enqueue with a fixed 3 hours timeout
     job = q.enqueue(
         process_transcription,
         file_url,
@@ -137,6 +125,5 @@ def transcribe():
     return jsonify({
         "status": "Accepted",
         "jobId": job.id,
-        "estimatedTimeSec": eta_sec,
         "timeoutUsed": timeout_sec
     }), 202
